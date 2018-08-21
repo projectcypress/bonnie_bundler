@@ -1,7 +1,7 @@
 GIT
   remote: https://github.com/projectcypress/health-data-standards.git
-  revision: 4cad4fdc164731df6058dfcdfe0c3980aee2a4e6
-  branch: master_bonnie
+  revision: aec756a8b800b394dd587bae4a765a6d4f2f3712
+  branch: bonnie-v3.0
   specs:
     health-data-standards (4.1.0)
       activesupport (~> 4.2.0)
@@ -138,7 +138,7 @@ GEM
     mime-types (2.99.3)
     mini_mime (1.0.0)
     mini_portile2 (2.3.0)
-    minitest (5.10.2)
+    minitest (5.11.3)
     mongo (2.4.3)
       bson (>= 4.2.1, < 5.0.0)
     mongoid (5.0.2)
