@@ -113,6 +113,80 @@ class CqlMeasure
     as_hqmf_model.all_data_criteria
   end
 
+  def measure_json(population_index=0,check_crosswalk=false)
+    hqmf_doc = self.as_hqmf_model
+    hqmf_doc_json = self.as_hqmf_model.to_json
+    options = {
+      value_sets: value_sets,
+      episode_ids: episode_ids,
+      continuous_variable: continuous_variable,
+      #force_sources: force_sources,
+      #custom_functions: custom_functions,
+      check_crosswalk: check_crosswalk
+    }
+    population_index ||= 0
+    json = {
+      id: self.hqmf_id,
+      nqf_id: self.measure_id,
+      hqmf_id: self.hqmf_id,
+      hqmf_set_id: self.hqmf_set_id,
+      hqmf_version_number: self.hqmf_version_number,
+      cms_id: self.cms_id,
+      name: self.title,
+      description: self.description,
+      type: self.type,
+      category: self.category,
+      source_data_criteria: hqmf_doc_json[:source_data_criteria],
+      population_criteria: hqmf_doc_json[:population_criteria],
+      data_criteria: hqmf_doc_json[:data_criteria],
+      measure_attributes: hqmf_doc_json[:attributes],
+      populations: hqmf_doc_json[:populations],
+      measure_period: hqmf_doc_json[:measure_period],
+      #map_fn: HQMF2JS::Generator::Execution.measure_js(self.as_hqmf_model, population_index, options),
+      continuous_variable: self.continuous_variable,
+      episode_of_care: self.episode_of_care,
+      hqmf_document:  {:source_data_criteria => hqmf_doc_json[:source_data_criteria],
+                       :data_criteria => hqmf_doc_json[:data_criteria]},
+      elm_annotations: self.elm_annotations,
+      observations: self.observations,
+      cql: self.cql,
+      elm: self.elm,
+      main_cql_library: self.main_cql_library,
+      cql_statement_dependencies: self.cql_statement_dependencies,
+      populations_cql_map: self.populations_cql_map,
+      value_set_oid_version_objects: self.value_set_oid_version_objects
+    }
+    if (self.populations.count > 1)
+      sub_ids = ('a'..'az').to_a
+      json[:sub_id] = sub_ids[population_index]
+      population_title = self.populations[population_index]['title']
+      json[:subtitle] = population_title
+      json[:short_subtitle] = population_title
+    end
+
+    if self.continuous_variable
+      observation = self.population_criteria[self.populations[population_index][HQMF::PopulationCriteria::OBSERV]]
+      json[:aggregator] = observation['aggregator']
+    end
+    
+    json[:oids] = self.value_sets.map{|value_set| value_set.oid}.uniq
+    
+    population_ids = {}
+    HQMF::PopulationCriteria::ALL_POPULATION_CODES.each do |type|
+      population_key = self.populations[population_index][type]
+      population_criteria = self.population_criteria[population_key]
+      if (population_criteria)
+        population_ids[type] = population_criteria['hqmf_id']
+      end
+    end
+    stratification = self['populations'][population_index]['stratification']
+    if stratification
+      population_ids['stratification'] = stratification 
+    end
+    json[:population_ids] = population_ids
+    json
+  end
+
   # Note whether or not the measure is a continuous variable measure.
   before_save :set_continuous_variable
   def set_continuous_variable

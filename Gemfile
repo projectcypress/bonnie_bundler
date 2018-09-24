@@ -14,6 +14,7 @@ gem 'health-data-standards', :git => 'https://github.com/projectcypress/health-d
 # gem 'simplexml_parser', :path => '../simplexml_parser'
 
 group :development do
+  gem 'bunny'
   gem 'rake'
   gem 'pry'
   gem 'pry-nav'
