@@ -11,6 +11,8 @@ module Cypress
       @expression_hash = {}
       @alias_hash = {}
       @unions = {}
+      @dependencies = {}
+      extract_dependencies
       @alias_expression_hash = {}
       measure['elm'].each do |library|
         extract_elements_from_library(library)
@@ -25,6 +27,7 @@ module Cypress
       measure['elm'].each do |library|
         library_id = library['library']['identifier']['id']
         library['library']['statements']['def'].each do |current_hash|
+          next unless @dependencies[library_id].include? current_hash['name']
           find_sub_elements_with_properties(library_id, current_hash['localId'], current_hash)
         end
       end
@@ -37,6 +40,20 @@ module Cypress
 
     def root_data_criteria
       @root_data_criteria
+    end
+
+    def extract_dependencies
+      @measure['cql_statement_dependencies'].each do |key, definitions|
+        @dependencies[key] = []
+      end
+      @measure['cql_statement_dependencies'].each do |key, definitions|
+        definitions.each do |name, deps|
+          @dependencies[key] << name unless @dependencies[key].include? name
+          deps.each do |dep|
+            @dependencies[dep['library_name']] << dep['statement_name'] unless @dependencies[dep['library_name']].include? dep['statement_name']
+          end
+        end
+      end
     end
 
     def update_measure_data_criteria
@@ -235,6 +252,7 @@ module Cypress
       @alias_expression_hash[library_id] = {}
       @expression_hash[library_id] = {}
       library['library']['statements']['def'].each do |statement|
+        next unless @dependencies[library_id].include? statement['name']
         parse_statement_for_aliases(statement, library_id)
         parse_statement_for_root_data_types(statement, library_id)
       end
